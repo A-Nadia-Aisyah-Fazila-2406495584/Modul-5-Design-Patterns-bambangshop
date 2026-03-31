@@ -92,10 +92,16 @@ This is the place for you to write reflections:
 
 #### Reflection Publisher-2
 **1. In the Model-View Controller (MVC) compound pattern, there is no “Service” and “Repository”. Model in MVC covers both data storage and business logic. Explain based on your understanding of design principles, why we need to separate “Service” and “Repository” from a Model?**
+- Pemisahan ini intinya supaya tiap bagian punya tanggung jawab yang sesuai dengan prinsip Single Responsibility Principle (SRP). jika semua di model, satu file harus menangani logika bisnis dan akses data sekaligus padahal keduanya bisa dimodify karena alasan yang berbeda. Dengan adanya repository yang khusus menangani akses data dan service yang khusus menangani logika bisnis, jika misal mau mengganti dari in memory storage ke database yang sungguhan, cukup ubah repository nya aja tanpa harus ubah bagian lain, berlaku juga sebaliknya jika logika bisnisnya yang berubah. Hasilnya, kode jadi lebih mudah untuk dimaintain.
 
 **2. What happens if we only use the Model? Explain your imagination on how the interactions between each model (Program, Subscriber, Notification) affect the code complexity for each model?**
+- Tiap model jadi harus menangani logika bisnisnya dan akses datanya sendiri. Akan bermasalah ketika antar model saling berinteraksi. Product perlu tahu soal subscriber untuk kirim notifikasi, subscriber perlu tahu soal notification untuk bentuk payload, dst. 
+- Ketiga model jadi saling bergantung satu sama lain, sehingga mengubah satu model akan berdampak ke model lainnya. Makin banyak fitur yang ditambahkan, makin tercampur kodenya, dan unit testing pun akan jadi susah. Jadinya kompleksitas dari kode meningkat.
 
-**3. Have you explored more about Postman? Tell us how this tool helps you to test your current work. You might want to also list which features in Postman you are interested in or feel like it is helpful to help your Group Project or any  of your future software engineering projects.**
+**3. Have you explored more about Postman? Tell us how this tool helps you to test your current work. You might want to also list which features in Postman you are interested in or feel like it is helpful to help your Group Project or any of your future software engineering projects.**
+- Postman sangat membantu, karena saya jadi bisa langsung menguji endpoint yang sudah dibuat tanpa harus bikin frontend nya dulu. Lansung bisa kirim HTTP request ke endpoint aplikasi dan bisa langsung lihat response body, status code, dan juga header nya. 
+- Fitur Collections juga sangat berguna untuk menyimpan dan organize request yang sering dipakai, sementara environment variables memudahkan penggantian base URL saat berpindah antara environment development dan production. 
+- Di tutorial ini saya menggunakan postman untuk menguji endpoint subscribe, unsubscribe, dan publish produk, sehingga bisa langsung verifikasi apakah observer pattern nya berjalan sesuai dengan harapan.
 
 #### Reflection Publisher-3
 **1. Observer Pattern has two variations: Push model (publisher pushes data to subscribers) and Pull model (subscribers pull data from publisher). In this tutorial case, which variation of Observer Pattern that we use?**
