@@ -56,7 +56,7 @@ You can install Postman via this website: https://www.postman.com/downloads/
     -   [x] Commit: `Implement add function in Subscriber repository.`
     -   [x] Commit: `Implement list_all function in Subscriber repository.`
     -   [x] Commit: `Implement delete function in Subscriber repository.`
-    -   [ ] Write answers of your learning module's "Reflection Publisher-1" questions in this README.
+    -   [x] Write answers of your learning module's "Reflection Publisher-1" questions in this README.
 -   **STAGE 2: Implement services and controllers**
     -   [x] Commit: `Create Notification service struct skeleton.`
     -   [x] Commit: `Implement subscribe function in Notification service.`
@@ -78,10 +78,17 @@ This is the place for you to write reflections:
 
 #### Reflection Publisher-1
 **1. In the Observer pattern diagram explained by the Head First Design Pattern book, Subscriber is defined as an interface. Explain based on your understanding of Observer design patterns, do we still need an interface (or trait in Rust) in this BambangShop case, or a single Model struct is enough?**
+- Sebuah single model `struct` sudah cukup dan tidak perlu menggunakan `trait`. Akan butuh `trait` jika ada berbagai jenis subscriber dengan perilaku yang berbeda. Namun, karena semua subscriber memiliki perilaku yang sama persis yaitu semuanya menerima notifikasi melalui HTTP POST ke URL yang mereka miliki. Tidak ada variasi tipe subscriber yang membutuhkan implementasi berbeda dari method `update()`.
 
 **2. id in Program and url in Subscriber is intended to be unique. Explain based on your understanding, is using Vec (list) sufficient or using DashMap (map/dictionary) like we currently use is necessary for this case?**
+- Menggunakan `DashMap` is necessary for this case karena id pada product dan url pada subscriber unik, maka butuh struktur data yang bisa menjamin keunikan dan mempermudah operasi lookup, insert, dan delete berdasarkan key. 
+- Dengan `DashMap`, operasi menghapus satu subscriber berdasarkan URL bisa dilakukan dalam O(1). Sedangkan, dengan `Vec` harus iterate seluruh list sehingga kompleksitasnya adalah O(n).
 
 **3. When programming using Rust, we are enforced by rigorous compiler constraints to make a thread-safe program. In the case of the List of Subscribers (SUBSCRIBERS) static variable, we used the DashMap external library for thread safe HashMap. Explain based on your understanding of design patterns, do we still need DashMap or we can implement Singleton pattern instead?**
+- Tetap butuh `DashMap` dan singleton pattern tidak bisa menggantikan nya. Keduanya menangani masalah yang berbeda:
+    - Singleton pattern memastikan hanya ada satu instance dari `SUBSCRIBERS` yang digunakan di seluruh app. Masalahnya adalah, singleton tidak menyelesaikan masalah thread safety saat terjadi akses bersamaan read/write. 
+    - `DashMap` dibutuhkan karena aplikasi berjalan secara multi-threaded, sehingga banyak thread bisa mengakses `SUBSCRIBERS` secara bersamaan. 
+- Intinya: singleton (`lazy_static!`) dan `DashMap` harus bekerja bersama yaitu singleton untuk memastikan satu instance, `DashMap` untuk thread safety pada akses yang concurrent.
 
 #### Reflection Publisher-2
 **1. In the Model-View Controller (MVC) compound pattern, there is no “Service” and “Repository”. Model in MVC covers both data storage and business logic. Explain based on your understanding of design principles, why we need to separate “Service” and “Repository” from a Model?**
