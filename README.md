@@ -63,13 +63,13 @@ You can install Postman via this website: https://www.postman.com/downloads/
     -   [x] Commit: `Implement subscribe function in Notification controller.`
     -   [x] Commit: `Implement unsubscribe function in Notification service.`
     -   [x] Commit: `Implement unsubscribe function in Notification controller.`
-    -   [ ] Write answers of your learning module's "Reflection Publisher-2" questions in this README.
+    -   [x] Write answers of your learning module's "Reflection Publisher-2" questions in this README.
 -   **STAGE 3: Implement notification mechanism**
     -   [x] Commit: `Implement update method in Subscriber model to send notification HTTP requests.`
     -   [x] Commit: `Implement notify function in Notification service to notify each Subscriber.`
     -   [x] Commit: `Implement publish function in Program service and Program controller.`
     -   [x] Commit: `Edit Product service methods to call notify after create/delete.`
-    -   [ ] Write answers of your learning module's "Reflection Publisher-3" questions in this README.
+    -   [x] Write answers of your learning module's "Reflection Publisher-3" questions in this README.
 
 ## Your Reflections
 This is the place for you to write reflections:
@@ -78,7 +78,7 @@ This is the place for you to write reflections:
 
 #### Reflection Publisher-1
 **1. In the Observer pattern diagram explained by the Head First Design Pattern book, Subscriber is defined as an interface. Explain based on your understanding of Observer design patterns, do we still need an interface (or trait in Rust) in this BambangShop case, or a single Model struct is enough?**
-- Sebuah single model `struct` sudah cukup dan tidak perlu menggunakan `trait`. Akan butuh `trait` jika ada berbagai jenis subscriber dengan perilaku yang berbeda. Namun, karena semua subscriber memiliki perilaku yang sama persis yaitu semuanya menerima notifikasi melalui HTTP POST ke URL yang mereka miliki. Tidak ada variasi tipe subscriber yang membutuhkan implementasi berbeda dari method `update()`.
+- Sebuah single model `struct` sudah cukup dan tidak perlu menggunakan `trait`. Akan butuh `trait` jika ada berbagai jenis subscriber dengan perilaku yang berbeda. Namun, karena semua subscriber memiliki perilaku yang sama persis yaitu semuanya menerima notifikasi melalui HTTP POST ke URL yang mereka miliki, tidak ada variasi tipe subscriber yang membutuhkan implementasi berbeda dari method `update()`.
 
 **2. id in Program and url in Subscriber is intended to be unique. Explain based on your understanding, is using Vec (list) sufficient or using DashMap (map/dictionary) like we currently use is necessary for this case?**
 - Menggunakan `DashMap` is necessary for this case karena id pada product dan url pada subscriber unik, maka butuh struktur data yang bisa menjamin keunikan dan mempermudah operasi lookup, insert, dan delete berdasarkan key. 
@@ -105,7 +105,17 @@ This is the place for you to write reflections:
 
 #### Reflection Publisher-3
 **1. Observer Pattern has two variations: Push model (publisher pushes data to subscribers) and Pull model (subscribers pull data from publisher). In this tutorial case, which variation of Observer Pattern that we use?**
+- Menggunakan push model. Terlihat dari cara kerja `NotificationService::notify()`, tiap kali ada event seperti product created, deleted, atau promotion, publisher langsung mendorong data notifikasi yang lengkap ke setiap subscriber via HTTP POST. Subscriber tidak perlu meminta ataupun mengambil data apapun, semua sudah dikirimkan langsung oleh publisher.
 
 **2. What are the advantages and disadvantages of using the other variation of Observer Pattern for this tutorial case? (example: if you answer Q1 with Push, then imagine if we used Pull)**
+- Keuntungan menggunakan pull model:
+    - Subscriber bisa mengambil only data yang mereka butuhkan saja, tidak ada data yang terkirim sia-sia.
+    - Publisher jadi lebih simpel karena tidak perlu menyiapkan payload lengkap
+    - Subscriber punya kendali lebih atas kapan mereka mau mengambil datanya sehingga bisa menghindari overload.
+- Kerugian menggunakan pull model:
+    - Subscriber harus melakukan HTTP request ke publisher, yang artinya menambahkan kompleksitas di sisi subscriber dan jumlah request secara keseluruhan.
+    - Ada risiko data sudah berubah lagi ketika subscriber baru melakukan pull, sehingga data yang didapat bisa tidak sinkron dengan aslinya.
+    - Model ini kurang cocok untuk tutorial ini karena ada jeda antara event terjadi dan subscriber mengetahuinya.
 
 **3. Explain what will happen to the program if we decide to not use multi-threading in the notification process.**
+- Pengiriman notifikasi ke setiap subscriber jadi akan berjalan secara sequential (satu per satu). Program harus menunggu response HTTP dari subscriber pertama selesai sebelum lanjut ke subscriber yang selanjutnya. Itu akan bermasalah, karena jika ada satu subscriber yang lambat merespons atau timeout, seluruh proses pengiriman notifikasi akan ikut tertunda. Lebih parah, request utama dari user seperti create product tidak akan selesai sampai semua notifikasi terkirim, sehingga response time bisa jadi sangat lama. Jika subscriber nya banyak, aplikasi bisa terasa lagging dari sudut pandang pengguna. 
